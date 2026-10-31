@@ -55,25 +55,6 @@ float innerRotateSpeed = -moveSpeed * (R - r) / r;
 std::vector<Vector2> drawPoints;
 Vector2 drawPoint = { r, 0 };
 
-
-float Slider(Rectangle bounds, float value, float min, float max)
-{
-	Vector2 mouse = GetMousePosition();
-
-	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) &&
-		CheckCollisionPointRec(mouse, bounds))
-	{
-		float percentage = (mouse.x - bounds.x) / bounds.width;
-
-		if (percentage < 0.0f) percentage = 0.0f;
-		if (percentage > 1.0f) percentage = 1.0f;
-
-		value = min + percentage * (max - min);
-	}
-
-	return value;
-}
-
 // Clears the drawing and restarts it from alpha 0
 void ResetDrawing()
 {
