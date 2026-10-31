@@ -16,7 +16,7 @@ Color colors[] = { RED, GREEN, BLUE, WHITE };
 int colorIndex = 1;
 Color color = colors[colorIndex]; // colour of drawing
 
-const int HIGH_PERF_MAX_DRAW_POINTS = 1000;
+const int HIGH_PERF_MAX_DRAW_POINTS = 2000;
 const float HIGH_PERF_DRAW_RATE = 0.005f;
 const int LOW_PERF_MAX_DRAW_POINTS = 50;
 const float LOW_PERF_DRAW_RATE = 0.15f;
