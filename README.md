@@ -16,14 +16,14 @@ Any change to a setting clears the drawing and starts it again from `alpha = 0`.
 
 ## Controls
 
-| Key | Action | Step | Range |
-|---|---|---|---|
-| `UP` / `DOWN` | Increase / decrease outer radius `R` | 10 px | 50 – 480 |
-| `RIGHT` / `LEFT` | Increase / decrease inner-to-outer `ratio` | 0.025 | 0.05 – 0.95 |
-| `W` / `S` | Increase / decrease rotation speed `moveSpeed` | 10 °/s | 0 – 1000 |
-| `C` | Cycle colour: Red → Green → Blue → White → … | | |
-| `L` | Low Performance Mode | | |
-| `H` | High Performance Mode (default) | | |
+| Key | Action | Default | Step | Range |
+|---|---|---|---|---|
+| `UP` / `DOWN` | Increase / decrease outer radius `R` | 400 px | 10 px | 50 – 480 |
+| `RIGHT` / `LEFT` | Increase / decrease inner-to-outer `ratio` | 0.375 | 0.025 | 0.05 – 0.95 |
+| `W` / `S` | Increase / decrease rotation speed `moveSpeed` | 300 °/s | 10 °/s | 0 – 1000 |
+| `C` | Cycle colour: Red → Green → Blue → White → … | Green | | |
+| `L` | Low Performance Mode | | | |
+| `H` | High Performance Mode | On | | |
 
 Each press changes a setting by one step. The controls and current values are shown in the top-left corner of the window.
 
@@ -31,7 +31,7 @@ Each press changes a setting by one step. The controls and current values are sh
 
 | Mode | `drawRate` | `maxDrawPoints` |
 |---|---|---|
-| High (default) | 0.005 s | 2000 |
+| High (default) | 0.005 s | 750 |
 | Low | 0.15 s | 50 |
 
 Low Performance Mode records points less often and keeps fewer of them, so it draws a shorter, more angular trail at a lower cost.
