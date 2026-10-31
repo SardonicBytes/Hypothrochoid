@@ -16,7 +16,7 @@ Color colors[] = { RED, GREEN, BLUE, WHITE };
 int colorIndex = 1;
 Color color = colors[colorIndex]; // colour of drawing
 
-const int HIGH_PERF_MAX_DRAW_POINTS = 2000;
+const int HIGH_PERF_MAX_DRAW_POINTS = 750;
 const float HIGH_PERF_DRAW_RATE = 0.005f;
 const int LOW_PERF_MAX_DRAW_POINTS = 50;
 const float LOW_PERF_DRAW_RATE = 0.15f;
@@ -49,7 +49,7 @@ Vector2 Cen = Vector2{ WINDOW_SIZE_X / 2,WINDOW_SIZE_Y / 2 };
 Vector2 cen;
 
 float deltaTime;
-float moveSpeed = 100;
+float moveSpeed = 300;
 float innerRotateSpeed = -moveSpeed * (R - r) / r;
 
 std::vector<Vector2> drawPoints;
