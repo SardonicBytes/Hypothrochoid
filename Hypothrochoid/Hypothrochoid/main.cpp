@@ -1,5 +1,6 @@
 #include <raylib.h>
 #include <raymath.h>
+
 #include "DuckTools.h"
 #include <vector>
 
@@ -7,16 +8,40 @@
 #define WINDOW_SIZE_Y 1000
 
 //Settings
-int R = 400; // outer radius
-int r = 150; // inner radius
-Color color = GREEN; // colour of drawing
+float R = 400; // outer radius
+float ratio = 0.375f; // inner radius as a fraction of outer radius
 Vector2 drawOffset = Vector2{0,75}; // offsets of points from small circle at alpha 0
-int maxDrawPoints = 1000;
 
+Color colors[] = { RED, GREEN, BLUE, WHITE };
+int colorIndex = 1;
+Color color = colors[colorIndex]; // colour of drawing
+
+const int HIGH_PERF_MAX_DRAW_POINTS = 1000;
+const float HIGH_PERF_DRAW_RATE = 0.005f;
+const int LOW_PERF_MAX_DRAW_POINTS = 50;
+const float LOW_PERF_DRAW_RATE = 0.15f;
+
+int maxDrawPoints = HIGH_PERF_MAX_DRAW_POINTS;
+float drawRate = HIGH_PERF_DRAW_RATE;
+bool lowPerformanceMode = false;
+
+// Amount changed per key press
+const float RADIUS_INCREMENT = 10;
+const float RATIO_INCREMENT = 0.025f;
+const float SPEED_INCREMENT = 10;
+
+// Limits
+const float MIN_R = 50;
+const float MAX_R = 480;
+const float MIN_RATIO = 0.05f;
+const float MAX_RATIO = 0.95f;
+const float MIN_SPEED = 0;
+const float MAX_SPEED = 1000;
 
 //Runtime
 float nextDrawTime = 0;
-float drawRate = 0.05f;
+float r = R * ratio; // inner radius
+
 
 float alpha = 0;
 float innerRotation = 0;
@@ -28,7 +53,110 @@ float moveSpeed = 100;
 float innerRotateSpeed = -moveSpeed * (R - r) / r;
 
 std::vector<Vector2> drawPoints;
-Vector2 drawPoint = { (float)r, 0 };
+Vector2 drawPoint = { r, 0 };
+
+
+float Slider(Rectangle bounds, float value, float min, float max)
+{
+	Vector2 mouse = GetMousePosition();
+
+	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) &&
+		CheckCollisionPointRec(mouse, bounds))
+	{
+		float percentage = (mouse.x - bounds.x) / bounds.width;
+
+		if (percentage < 0.0f) percentage = 0.0f;
+		if (percentage > 1.0f) percentage = 1.0f;
+
+		value = min + percentage * (max - min);
+	}
+
+	return value;
+}
+
+// Clears the drawing and restarts it from alpha 0
+void ResetDrawing()
+{
+	drawPoints.clear();
+	alpha = 0;
+	innerRotation = 0;
+	nextDrawTime = 0;
+}
+
+void Settings()
+{
+	// Snapshot so we can tell if anything changed this frame
+	float oldR = R;
+	float oldRatio = ratio;
+	float oldMoveSpeed = moveSpeed;
+	int oldColorIndex = colorIndex;
+	bool oldLowPerformanceMode = lowPerformanceMode;
+
+	// Outer radius
+	if (IsKeyPressed(KEY_UP)) R += RADIUS_INCREMENT;
+	if (IsKeyPressed(KEY_DOWN)) R -= RADIUS_INCREMENT;
+	R = Clamp(R, MIN_R, MAX_R);
+
+	// Inner to outer ratio
+	if (IsKeyPressed(KEY_RIGHT)) ratio += RATIO_INCREMENT;
+	if (IsKeyPressed(KEY_LEFT)) ratio -= RATIO_INCREMENT;
+	ratio = Clamp(ratio, MIN_RATIO, MAX_RATIO);
+
+	// Rotation speed
+	if (IsKeyPressed(KEY_W)) moveSpeed += SPEED_INCREMENT;
+	if (IsKeyPressed(KEY_S)) moveSpeed -= SPEED_INCREMENT;
+	moveSpeed = Clamp(moveSpeed, MIN_SPEED, MAX_SPEED);
+
+	// Colour cycle
+	if (IsKeyPressed(KEY_C))
+	{
+		colorIndex = (colorIndex + 1) % (sizeof(colors) / sizeof(colors[0]));
+		color = colors[colorIndex];
+	}
+
+	// Performance modes
+	if (IsKeyPressed(KEY_L))
+	{
+		lowPerformanceMode = true;
+		drawRate = LOW_PERF_DRAW_RATE;
+		maxDrawPoints = LOW_PERF_MAX_DRAW_POINTS;
+	}
+	if (IsKeyPressed(KEY_H))
+	{
+		lowPerformanceMode = false;
+		drawRate = HIGH_PERF_DRAW_RATE;
+		maxDrawPoints = HIGH_PERF_MAX_DRAW_POINTS;
+	}
+
+	r = R * ratio;
+	innerRotateSpeed = -moveSpeed * (R - r) / r;
+
+	if (R != oldR || ratio != oldRatio || moveSpeed != oldMoveSpeed ||
+		colorIndex != oldColorIndex || lowPerformanceMode != oldLowPerformanceMode)
+	{
+		ResetDrawing();
+	}
+}
+
+void DrawControls()
+{
+	int x = 10;
+	int y = 10;
+	int size = 20;
+	int spacing = 24;
+
+	DrawText("UP / DOWN    - Outer radius", x, y, size, LIGHTGRAY); y += spacing;
+	DrawText("LEFT / RIGHT - Inner ratio", x, y, size, LIGHTGRAY); y += spacing;
+	DrawText("W / S        - Rotation speed", x, y, size, LIGHTGRAY); y += spacing;
+	DrawText("C            - Cycle colour", x, y, size, LIGHTGRAY); y += spacing;
+	DrawText("L            - Low performance mode", x, y, size, LIGHTGRAY); y += spacing;
+	DrawText("H            - High performance mode", x, y, size, LIGHTGRAY); y += spacing * 2;
+
+	DrawText(TextFormat("Outer radius: %.0f", R), x, y, size, color); y += spacing;
+	DrawText(TextFormat("Inner ratio: %.3f (r = %.0f)", ratio, r), x, y, size, color); y += spacing;
+	DrawText(TextFormat("Speed: %.0f", moveSpeed), x, y, size, color); y += spacing;
+	DrawText(lowPerformanceMode ? "Mode: Low Performance" : "Mode: High Performance", x, y, size, color);
+}
 
 void DrawShape()
 {
@@ -49,7 +177,7 @@ void DrawShape()
 		drawPoints.push_back(drawPoint);
 		if (drawPoints.size() > maxDrawPoints)
 		{
-			drawPoints.erase(drawPoints.begin()); // Inneffecient. best to switch to queue, but may need to change DrawLineStrip to support it.
+			drawPoints.erase(drawPoints.begin(), drawPoints.end() - maxDrawPoints); // Inneffecient. best to switch to queue, but may need to change DrawLineStrip to support it.
 		}
 		nextDrawTime = GetTime() + drawRate;
 	}
@@ -66,7 +194,9 @@ int main()
 		BeginDrawing();
 		ClearBackground(BLACK);
 
+		Settings();
 		DrawShape();
+		DrawControls();
 
 		EndDrawing();
 	}
